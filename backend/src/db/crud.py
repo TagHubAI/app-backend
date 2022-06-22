@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas
 
-def create_text(db: Session, text: schemas.BaseText):
+def create_text(db: Session, text: schemas.TextBase):
     db_text = models.Text(text_content=text.text_content)
     db.add(db_text)
     db.commit()
