@@ -32,14 +32,18 @@ templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
 def read_root(request: Request, db: Session = Depends(get_db)):
-    return templates.TemplateResponse("index.html", {"request":request})
+    all_data_query = [(i,data.text_content) for i,data in enumerate(db.query(models.Text).all())]
+    return templates.TemplateResponse("index.html", {"request":request, "idx_text_list":all_data_query})
 
 @app.post("/")
-async def post_root(request:Request):
+async def post_root(request:Request, db: Session = Depends(get_db)):
     post_content = await request.form()
     post_content = jsonable_encoder(post_content)
     text_list: List[str] = post_content["textarea"].split("\r\n")
-    print(text_list)
+
+    for txt in text_list:
+        crud.create_text(db, schemas.TextBase(text_content=txt))
+
     return RedirectResponse(
         '/', 
         status_code=status.HTTP_302_FOUND)

@@ -41,7 +41,7 @@
         </tfoot>
         <tbody>
           <tr>
-            <th>1</th>
+            <th>Example</th>
             <td>
               This is somewhat cool
             </td>
@@ -53,7 +53,7 @@
             </td>
           </tr>
           <tr>
-            <th>2</th>
+            <th>Example</th>
             <td>
               This is not ok!!
             <td>
@@ -66,7 +66,7 @@
             </td>
           </tr>
           <tr>
-            <th>3</th>
+            <th>Example</th>
             <td>
               This is too bad!!
             <td>
@@ -76,6 +76,19 @@
               <button class="button is-success is-light">Positive</button>
             </td>
           </tr>
+          {% for idx, text in idx_text_list %}
+          <tr>
+            <th>{{ idx }}</th>
+            <td>
+              {{ text }}
+            <td>
+              <button class="button is-green is-light">Electronic</button>
+            </td>
+            <td>
+              <button class="button is-success is-light">Positive</button>
+            </td>
+          </tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
