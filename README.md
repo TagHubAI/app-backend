@@ -13,17 +13,22 @@ pip install -r backend/requirements.txt
 ```
 
 ## Run the backend service
-```python
+```bash
 cd backend
 python main.py 
 ```
 Then go to `127.0.0.0:8000` to go to the main dashboard.
 
-## Run the frontend (Not supported)
-Dedicated frontend using react will be supported in the future.
+## Run the frontend 
+```bash
+cd frontend
+npm start
+```
 
-## Docker (Not supported)
-Dedicated docker image will be supported in the future.
+## Docker
+Dedicated Dockerfile for web services:
+- Backend: `backend/Dockerfile` 
+- Frontend: `frontend/Dockerfile`
 
 # Roadmap
 @TODO: To be updated
