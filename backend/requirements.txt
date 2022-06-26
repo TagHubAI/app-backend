@@ -16,6 +16,7 @@ six==1.16.0
 sniffio==1.2.0
 SQLAlchemy==1.4.37
 starlette==0.19.1
+scipy<=1.9
 typing_extensions==4.2.0
 uvicorn==0.17.6
 uvloop==0.16.0
