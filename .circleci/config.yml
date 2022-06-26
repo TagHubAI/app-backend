@@ -1,9 +1,5 @@
 version: 2.1
 
-orbs:
-  coverage-reporter: codacy/coverage-reporter@11.10.0
-
-
 executors:
   python310-docker:
     docker:
@@ -25,12 +21,7 @@ commands:
       - run:
           name: "Test backend with coverage"
           command: |
-            coverage run -m pytest backend/tests
-            coverage xml
-      - coverage-reporter/send_report:
-          coverage-reports: 'coverage.xml'
-          project-token: $CODACY_PROJECT_TOKEN
-
+            pytest backend/tests
       
 jobs:
   test_backend:
