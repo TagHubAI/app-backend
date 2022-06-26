@@ -1,0 +1,45 @@
+version: 2.1
+
+orbs:
+  coverage-reporter: codacy/coverage-reporter@11.10.0
+
+executors:
+  python310-docker:
+    docker:
+      - image: cimg/python:3.10
+    resource_class: medium
+
+commands:
+  run_build_test_backend:
+    steps:
+      - checkout
+      - run:
+          name: "Install module package"
+          command: |
+            pip install -r backend/requirements.txt
+      - run:
+          name: "Install test package"
+          command: |
+            pip install -r backend/test_requirements.txt
+      - run:
+          name: "Test backend with coverage"
+          command: |
+            coverage run -m pytest tests/backend/
+            coverage xml
+      - coverage-reporter/send_report:
+          coverage-reports: 'coverage.xml'
+          project-token: $CODACY_PROJECT_TOKEN
+
+      
+jobs:
+  test_backend:
+    executor: python310-docker
+    steps:
+      - run_build_test_backend
+
+workflows:
+  # Name the workflow "welcome"
+  main:
+    # Run the welcome/run job in its own container
+    jobs:
+      - test_backend 
