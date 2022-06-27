@@ -5,6 +5,7 @@
 <script>
 
   async function getWaitedData(elapsed_time) {
+<<<<<<< HEAD
 
     let response = await fetch('/slow_call/'.concat(elapsed_time.toString()))
     // return new Promise(resolve => setTimeout(response.text(), 2000, 'my content'))
@@ -18,6 +19,12 @@
     // loader.innerHTML = 'Done loading'
     return graph_html.slice(6,-7)
   }
+=======
+    let response = await fetch('/slow_call/'.concat(elapsed_time.toString()))
+    // return new Promise(resolve => setTimeout(response.text(), 2000, 'my content'))
+    return await response.text()
+  }
+>>>>>>> 4dd4568e45f9ba4e9886fa7377c2114cb5ab52b1
   // const loader = document.querySelector('#loader')
   // const graph_1 = document.querySelector('#graph_1')
   // graph_1.innerHTML = ''
@@ -157,6 +164,7 @@
             </header>
             <div class="card-content">
               <div class="content">
+<<<<<<< HEAD
                 <div id="wc_graph">Loading...</div>
                 <span x-data x-text="await getWaitedData(1)"></span>
                 <iframe>
@@ -164,6 +172,9 @@
                 <div x-data x-text="await getDataFromAPI('/visualization/word_cloud','wc_graph')">
                 </iframe>
                 </div>
+=======
+                <span x-data x-text="await getWaitedData(1)"></span>
+>>>>>>> 4dd4568e45f9ba4e9886fa7377c2114cb5ab52b1
               </div>
             </div>
           </div>

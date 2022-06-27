@@ -13,7 +13,10 @@ from ..db.database import SessionLocal, engine
 import starlette.status as status
 from typing import List
 
+<<<<<<< HEAD
 from ..edakit import visualization
+=======
+>>>>>>> 4dd4568e45f9ba4e9886fa7377c2114cb5ab52b1
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -55,6 +58,7 @@ async def slow_call(request: Request, time_lapse: int):
     await asyncio.sleep(time_lapse)
     return f"Return after {time_lapse} sec!"
 
+<<<<<<< HEAD
 @app.get("/visualization/word_cloud", response_class=HTMLResponse)
 def get_word_cloud_visualization(db: Session = Depends(get_db)):
     import numpy as np
@@ -66,3 +70,5 @@ def get_word_cloud_visualization(db: Session = Depends(get_db)):
     fig = px.imshow(wc_img)
     wc_html = plotly.io.to_html(fig)
     return wc_html
+=======
+>>>>>>> 4dd4568e45f9ba4e9886fa7377c2114cb5ab52b1
