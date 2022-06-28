@@ -17,12 +17,14 @@ pip install -r backend/requirements.txt
 cd backend
 python main.py 
 ```
-Then go to `127.0.0.0:8000` to go to the main dashboard.
+Then go to `127.0.0.0:8000` to see to the main dashboard.
 
 ## Run the frontend 
 ```bash
 cd frontend
-npm start
+npm install # Install dependencies
+npm run lint # Optional: Run linting
+npm run dev # Run dev server
 ```
 
 ## Docker
