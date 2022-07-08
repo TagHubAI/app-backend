@@ -29,6 +29,9 @@ commands:
   run_build_test_frontend:
     steps:
       - checkout
+      - run:
+          name: Go to frontend folder
+          command: cd frontend
       - restore_cache:
           keys:
             - node-v1-{{ checksum "package-lock.json" }}
