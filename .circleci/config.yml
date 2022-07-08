@@ -12,9 +12,10 @@ executors:
 
 commands:
   run_build_test_backend:
+    working_directory: ~/taghub/backend
     steps:
       - checkout:
-          path: ~/backend
+          path: ~/taghub
       - run:
           name: "Install module package"
           command: |
@@ -28,9 +29,10 @@ commands:
           command: |
             pytest tests
   run_build_test_frontend:
+    working_directory: ~/taghub/frontend
     steps:
       - checkout:
-          path: ~/frontend
+          path: ~/taghub
       - restore_cache:
           keys:
             - node-v1-{{ checksum "package-lock.json" }}
