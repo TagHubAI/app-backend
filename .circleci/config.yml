@@ -12,7 +12,6 @@ executors:
 
 commands:
   run_build_test_backend:
-    working_directory: ~/taghub/backend
     steps:
       - checkout:
           path: ~/taghub
@@ -29,7 +28,6 @@ commands:
           command: |
             pytest tests
   run_build_test_frontend:
-    working_directory: ~/taghub/frontend
     steps:
       - checkout:
           path: ~/taghub
@@ -52,10 +50,12 @@ commands:
       
 jobs:
   test_backend:
+    working_directory: ~/taghub/backend
     executor: python310-docker
     steps:
       - run_build_test_backend
   test_frontend:
+    working_directory: ~/taghub/frontend
     executor: nodelts-docker
     steps:
       - run_build_test_frontend
