@@ -50,12 +50,12 @@ commands:
       
 jobs:
   test_backend:
-    working_directory: ~/taghub/backend
+    working_directory: ~/taghub/services/backend
     executor: python310-docker
     steps:
       - run_build_test_backend
   test_frontend:
-    working_directory: ~/taghub/frontend
+    working_directory: ~/taghub/services/frontend
     executor: nodelts-docker
     steps:
       - run_build_test_frontend
