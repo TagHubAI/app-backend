@@ -1,10 +1,8 @@
-<template>
-  <router-view />
-</template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { DEFAULT_APP_TITLE } from '@/modules/common/config'
+import Navbar from '@/components/core/Navbar.vue'
 
 export default defineComponent({
   watch: {
@@ -22,3 +20,8 @@ export default defineComponent({
   },
 })
 </script>
+
+<template>
+  <Navbar />
+  <router-view />
+</template>
