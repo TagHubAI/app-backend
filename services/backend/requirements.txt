@@ -6,3 +6,6 @@ uvicorn==0.17.6
 aerich==0.6.3
 asyncpg==0.26.0
 tortoise-orm==0.19.1
+torch==1.11.0
+scipy<=1.9
+transformers==4.20.1
