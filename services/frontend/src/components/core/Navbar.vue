@@ -5,7 +5,6 @@ const navbarUserBuildSteps = ref([
     { text: "Build", route: "build" },
     { text: "Run", route: "run" },
     { text: "Analytics", route: "analytics" },
-    { text: "Hello", route: "hello" },
 ])
 const userSettingsOptions = ref([
     { text: "Settings", route: "user-settings" },

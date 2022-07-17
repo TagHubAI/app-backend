@@ -5,6 +5,8 @@ import App from './App.vue'
 import router from './router/router'
 import i18n from '@/i18n'
 import globalPlugins from '@/plugins/globalPlugins'
+import { createVuestic } from 'vuestic-ui' // <-
+import 'vuestic-ui/dist/vuestic-ui.css' // <-
 
 import '@formkit/themes/genesis'
 import '@/assets/css/index.scss'
@@ -12,6 +14,7 @@ import '@/assets/css/index.scss'
 import './modules/common/apiConfig'
 createApp(App)
   .use(createPinia())
+  .use(createVuestic())
   .use(i18n)
   .use(router)
   .use(globalPlugins)
