@@ -18,13 +18,17 @@ services:
     ports:
       - 3000:3000
     command: yarn vite --host 3000
-  # db:
-  #   image: postgres:14
-  #   expose:
-  #     - 5432
-  #   environment:
-  #     - POSTGRES_USER=hello_fastapi
-  #     - POSTGRES_PASSWORD=hello_fastapi
-  #     - POSTGRES_DB=hello_fastapi_dev
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data/
+  db:
+    image: postgres:14
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=taghub_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+  
+volumes:
+  postgres_data:
+    driver: local
