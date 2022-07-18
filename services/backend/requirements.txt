@@ -9,3 +9,6 @@ tortoise-orm==0.19.1
 torch==1.11.0
 scipy<=1.9
 transformers==4.20.1
+
+bcrypt==3.2.0
+passlib==1.7.4
