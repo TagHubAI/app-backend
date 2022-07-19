@@ -9,7 +9,7 @@ services:
       - ./services/backend:/app
     command: uvicorn src.app.api:app --reload --host 0.0.0.0 --port 4000
     environment:
-      - DATABASE_URL=postgres://taghub_user:taghub_pw@db:5432/taghub_db
+      - DATABASE_URL=postgres://postgres:postgres@db:5432/taghub_db
   frontend:
     build: ./services/frontend
     volumes:

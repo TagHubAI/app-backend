@@ -1,11 +1,8 @@
 import os
 
-TORTOISE_ORM = {
-    "connections": {"default": os.environ.get("DATABASE_URL")},
-    "apps": {
-        "models": {
-            "models": ["src.db.models", "aerich.models"],
-            "default_connection": "default",
-        }
-    },
+TORTOISE_ORM_CONFIG = {
+    "db_url":os.environ.get("DATABASE_URL"),
+    "modules":{"models": ["src.db.models", "aerich.models"]},
+    "generate_schemas":True,
+    "add_exception_handlers":True,
 }

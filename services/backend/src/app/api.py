@@ -1,54 +1,54 @@
-from typing import Union
-
 from fastapi import FastAPI, Request, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+
 import asyncio
 
-from ..db.register import register_tortoise
-from ..db.config import TORTOISE_ORM
+from ..db.config import TORTOISE_ORM_CONFIG
+from ..db.models import Users, User_Pydantic, UserIn_Pydantic, UserOut_Pydantic
 
+from tortoise.contrib.fastapi import register_tortoise
 import starlette.status as status
+
 from typing import List
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
+from typing import Union
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-register_tortoise(app, config=TORTOISE_ORM, generate_schemas=False)
-
+register_tortoise(app, **TORTOISE_ORM_CONFIG)
 
 @app.get("/")
 def get_root():
-    return "Hello World!"
+    return "Hello World! TagHub is awesome!"
 
+@app.get("/api/v1/users", response_model = List[UserOut_Pydantic])
+async def get_users():
+    return await UserOut_Pydantic.from_queryset(Users.all())
 
-@app.post("/")
-async def post_root(request: Request):  # , db: Session = Depends(get_db)):
-    post_content = await request.form()
-    post_content = jsonable_encoder(post_content)
-    text_list: List[str] = post_content["textarea"].split("\r\n")
+@app.get("/api/v1/users/{user_id}", response_model = UserOut_Pydantic)
+async def get_user(user_id: int):
+    return await UserOut_Pydantic.from_queryset_single(Users.get(id=user_id))
 
-    for txt in text_list:
-        crud.create_text(db, schemas.TextBase(text_content=txt))
+@app.post("/api/v1/user", response_model = UserOut_Pydantic)
+async def create_user(user: UserIn_Pydantic):
+    user_obj = await Users.create(**user.dict(exclude_unset=True))
+    return await User_Pydantic.from_tortoise_orm(user_obj)
 
-    return RedirectResponse("/", status_code=status.HTTP_302_FOUND)
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user_dict = User_Pydantic.from_queryset_single(Users.get(username=form_data.get('username'))) 
 
+    if not user_dict:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    user = UserInDB(**user_dict)
+    hashed_password = fake_hash_password(form_data.password)
+    if not hashed_password == user.hashed_password:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
 
-@app.get("/slow_call/{time_lapse}")
-async def slow_call(request: Request, time_lapse: int):
-    import time
+    return {"access_token": user.username, "token_type": "bearer"}
 
-    await asyncio.sleep(time_lapse)
-    return f"Return after {time_lapse} sec!"

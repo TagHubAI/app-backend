@@ -3,7 +3,6 @@ import os
 import sys
 
 EDAKIT_PATH = os.path.join(Path(__file__).parent.parent, "src")
-print(EDAKIT_PATH)
 sys.path.append(EDAKIT_PATH)
 
 
