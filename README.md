@@ -5,36 +5,26 @@
 
 </div>
 
-# Installation
-## Install requirements
-First, install `Python >= 3.7` using either [OEM Python Installer](https://www.python.org/downloads/) or [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
-```
-pip install -r backend/requirements.txt
-```
+# I. Installation 
 
-## Run the backend service
-```bash
-cd backend
-python main.py 
-```
-Then go to `127.0.0.0:8000` to go to the main dashboard.
+1. Install [Docker](https://www.docker.com/get-started/) and have it opened
+2. Run:  `docker-compose up -d --build`
+3. Access services at these ports:
+    - Frontend: `localhost:3000`
+    - Backend: `localhost:4000`
 
-## Run the frontend 
-```bash
-cd frontend
-npm start
-```
+# II. Development
 
-## Docker
-Dedicated Dockerfile for web services:
-- Backend: `backend/Dockerfile` 
-- Frontend: `frontend/Dockerfile`
+1. Follow (I) for the environment setup
+2. Change the code, save and see these services react to your changes
+3. Whenever you add a new package, please run `docker-compose up -d --build` again
 
-# Roadmap
+
+# III. Roadmap
 @TODO: To be updated
 
-# Contributing
+# IV. Contributing
 @TODO: To be updated
 
-# License
+# V. License
 GPLv3
