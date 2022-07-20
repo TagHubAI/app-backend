@@ -6,14 +6,13 @@ from tortoise.contrib.pydantic import pydantic_model_creator
 from src.db.models import Datasets
 
 
-NoteInSchema = pydantic_model_creator(
-    Datasets, name="NoteIn", exclude=["author_id"], exclude_readonly=True)
-NoteOutSchema = pydantic_model_creator(
-    Datasets, name="Note", exclude =[
-      "modified_at", "author.password", "author.created_at", "author.modified_at"
+DatasetInSchema = pydantic_model_creator(
+    Datasets, name="DatasetIn", exclude=["name"], exclude_readonly=True)
+DatasetOutSchema = pydantic_model_creator(
+    Datasets, name="DatasetOut", exclude =[
+      "modified_at", "created_at", "user.id"
     ]
 )
 
-class UpdateNote(BaseModel):
-    title: Optional[str]
-    content: Optional[str]
+class UpdateDataset(BaseModel):
+    name: Optional[str]

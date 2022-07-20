@@ -19,6 +19,20 @@ async def create_user(user) -> UserOutSchema:
 
     return await UserOutSchema.from_tortoise_orm(user_obj)
 
+async def read_user(user_id: int):
+    return await Users.from_queryset_single(Users.get(id=user_id))
+
+async def update_user(user, user_id) -> UserOutSchema:
+    try:
+        db_user = await UserOutSchema.from_queryset_single(Users.get(id=user_id))
+    except DoesNotExist:
+        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+
+    
+    await Users.filter(id=user_id).update(**user.dict(exclude_unset=True))
+    
+    return await Users.from_queryset_single(Users.get(id=user_id))
+
 
 async def delete_user(user_id, current_user):
     try:
