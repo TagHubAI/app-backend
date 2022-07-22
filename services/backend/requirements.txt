@@ -10,3 +10,4 @@ tortoise-orm==0.19.1
 scipy<=1.9
 transformers==4.20.1
 passlib[bcrypt]<2
+python-multipart
