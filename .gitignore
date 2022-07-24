@@ -7,6 +7,14 @@ postgres_data/
 # C extensions
 *.so
 
+# Sqlite extensions
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Docker-slim extensions
+slim.report.json
+
 # Distribution / packaging
 .Python
 build/

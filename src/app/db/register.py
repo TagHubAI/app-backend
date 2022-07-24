@@ -2,7 +2,6 @@ from typing import Optional
 
 from tortoise import Tortoise
 
-
 def register_tortoise(
     app,
     config: Optional[dict] = None,

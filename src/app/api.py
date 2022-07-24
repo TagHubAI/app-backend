@@ -7,8 +7,8 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 import asyncio
 
-from ..db.config import TORTOISE_ORM_CONFIG
-from ..db.models import (
+from .db.config import TORTOISE_ORM_CONFIG
+from .db.models import (
     Users, 
     User_Pydantic, 
     UserIn_Pydantic, 
@@ -27,7 +27,7 @@ from ..db.models import (
     DatapointOut_Pydantic,
     )
 
-from ..db.schemas import DualResourceActionResponse, SingleResourceActionResponse
+from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse
 from tortoise.contrib.fastapi import register_tortoise
 import starlette.status as status
 from tortoise.query_utils import Prefetch
@@ -39,6 +39,10 @@ from typing import Union
 app = FastAPI()
 
 register_tortoise(app, **TORTOISE_ORM_CONFIG)
+
+@app.get("/")
+async def read_root():
+    return "Please go to /docs to read the documentation"
 
 @app.post("/api/v1/workflows", response_model = WorkflowOut_Pydantic)
 async def create_workflow(workflow: WorkflowIn_Pydantic):
