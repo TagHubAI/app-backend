@@ -5,16 +5,11 @@ executors:
     docker:
       - image: cimg/python:3.10
     resource_class: medium
-  nodelts-docker:
-    docker:
-      - image: cimg/node:lts
-    resource_class: medium
 
 commands:
   run_build_test_backend:
     steps:
-      - checkout:
-          path: ~/taghub
+      - checkout
       - run:
           name: "Install module package"
           command: |
@@ -27,38 +22,12 @@ commands:
           name: "Test backend with coverage"
           command: |
             pytest tests
-  run_build_test_frontend:
-    steps:
-      - checkout:
-          path: ~/taghub
-      - restore_cache:
-          keys:
-            - node-v1-{{ checksum "package-lock.json" }}
-      - run:
-          name: Install dependencies
-          command: npm ci
-      - save_cache:
-          key: node-v1-{{ checksum "package-lock.json" }}
-          paths:
-            - ~/.npm
-      - run:
-          name: Run linter
-          command: npm run lint
-      - run:
-          name: Run tests
-          command: npm run test
       
 jobs:
   test_backend:
-    working_directory: ~/taghub/services/backend
     executor: python310-docker
     steps:
       - run_build_test_backend
-  test_frontend:
-    working_directory: ~/taghub/services/frontend
-    executor: nodelts-docker
-    steps:
-      - run_build_test_frontend
 
 workflows:
   # Name the workflow "welcome"
@@ -66,4 +35,3 @@ workflows:
     # Run the welcome/run job in its own container
     jobs:
       - test_backend
-      - test_frontend
