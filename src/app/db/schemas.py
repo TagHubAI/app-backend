@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import List
 
 class SingleResourceActionResponse(BaseModel):
     resource_name: str
@@ -11,3 +12,8 @@ class DualResourceActionResponse(BaseModel):
     resource_2_name: str
     resource_2_id: int
     action: str
+
+class CreateDatasetBody(BaseModel):
+    facebook_post_urls: List[str]
+    
+

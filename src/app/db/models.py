@@ -15,6 +15,7 @@ class Users(models.Model):
 class Workflows(models.Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255, default="Default Workflow Name")
+    description = fields.CharField(max_length=255, default="Default Workflow Description")
     datasets = fields.ManyToManyField('models.Datasets', related_name="workflow", through="workflow_dataset", null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
