@@ -28,7 +28,7 @@ from .db.models import (
     DatapointOut_Pydantic,
     )
 
-from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse
+from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse, CreateDatasetBody
 from tortoise.contrib.fastapi import register_tortoise
 import starlette.status as status
 from tortoise.query_utils import Prefetch
@@ -132,6 +132,37 @@ async def upload_dataset(file: UploadFile, dataset_name: str = "Default dataset 
             data = await Datapoints.create(content=content, dataset=dataset)
     
     return {"filename": file.filename}
+
+@app.post("/api/v1/datasets/create", response_model=DatasetOut_Pydantic)
+async def create_dataset(request_body: CreateDatasetBody, dataset_name: str = "Default dataset name"):
+    """
+    Create a dataset either by: facebook_post_urls or fanpage_id
+
+    """
+    from facebook_scraper import get_posts
+
+    facebook_post_urls = request_body.dict()['facebook_post_urls']
+
+    if len(facebook_post_urls) > 0:
+        comments = []
+
+        # Create dataset
+        dataset = await Datasets.create(name=dataset_name) 
+
+        for post in get_posts(post_urls=facebook_post_urls, options={"comments": True}):
+            comments_full = post["comments_full"]
+
+            for comment in comments_full:
+                comment_text = comment["comment_text"]
+                comments.append(comment_text)
+
+                # Create datapoint entry for each comment
+                await Datapoints.create(content=comment_text, dataset=dataset)
+
+        return dataset
+
+    return
+
 
 @app.get("/api/v1/datasets", response_model=List[DatasetOut_Pydantic])
 async def list_datasets():
