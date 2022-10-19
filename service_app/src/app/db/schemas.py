@@ -15,5 +15,13 @@ class DualResourceActionResponse(BaseModel):
 
 class CreateDatasetBody(BaseModel):
     facebook_post_urls: List[str]
+
+class SignUpRequestBody(BaseModel):
+    email: str
+    # Only require email at this time
+    # password: str
     
+class SignInRequestBody(BaseModel):
+    email: str
+    password: str
 

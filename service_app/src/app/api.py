@@ -1,44 +1,46 @@
-from fastapi import FastAPI, Request, Depends, Form, File, UploadFile, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.encoders import jsonable_encoder
+from fastapi import FastAPI, Request, Depends, UploadFile, HTTPException
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 import asyncio
 
 from .db.config import TORTOISE_ORM_CONFIG
 from .db.models import (
     Users, 
+    UserRegisterIn_Pydantic,
     User_Pydantic, 
     UserIn_Pydantic, 
     UserOut_Pydantic, 
     Workflows,
-    Workflow_Pydantic, 
     WorkflowIn_Pydantic, 
     WorkflowOut_Pydantic,
     Datasets,
-    Dataset_Pydantic,
-    DatasetIn_Pydantic,
     DatasetOut_Pydantic,
     Datapoints,
-    Datapoint_Pydantic,
-    DatapointIn_Pydantic,
     DatapointOut_Pydantic,
     )
 
-from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse, CreateDatasetBody
+from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse, CreateDatasetBody, SignUpRequestBody, SignInRequestBody
+from .auth.security import  get_password_hash
 from tortoise.contrib.fastapi import register_tortoise
-import starlette.status as status
-from tortoise.query_utils import Prefetch
+from dotenv import load_dotenv
+import os
 
+from supabase import create_client, Client
+
+import firebase_admin 
+from firebase_admin import credentials, auth
+import pyrebase
+import json
 
 from typing import List
-from typing import Union
+
+load_dotenv()  # take environment variables from .env.
 
 app = FastAPI()
 
+# Allowed origins
 origins = [
     "http://localhost:3000",
 ]
@@ -50,30 +52,104 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+# Register Turtoise ORM for database 
 register_tortoise(app, **TORTOISE_ORM_CONFIG)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+supabase: Client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
+
+# Setup firebase authentication
+# firebase_admin.initialize_app(credentials.Certificate(json.loads(os.environ.get("FB_ADMIN_CONFIGS"))))
+# pb = pyrebase.initialize_app(json.loads(os.environ.get("FB_PYREBASE_CONFIGS")))
+
+# Setup supabase authentication
+
+
+# signup endpoint
+@app.post("/signup")
+async def signup(req: SignUpRequestBody):
+    email: str = req.email
+    # Only required email for signup at this time
+    # password: str = 
+    #
+    # if email is None or password is None:
+    #    return HTTPException(detail={'message': 'Error! Missing Email or Password'}, status_code=400)
+    # try:
+    #    user = auth.create_user(
+    #        email=email,
+    #        password=password
+    #    )
+    #    return JSONResponse(content={'message': f'Successfully created user {user.uid}'}, status_code=200)    
+    # except Exception as e:
+    #     return HTTPException(detail={'message': str(e)}, status_code=400)
+    
+    try:
+        user: Dict[str, Any] = supabase.auth.sign_up(email=email)
+        return JSONResponse(content={'message': f'Successfully created user {user.uid}'}, status_code=200)    
+    except Exception as e:
+        return HTTPException(detail={'message': str(e)}, status_code=400)
+
+
+@app.post("/signin")
+async def signin(request: SignInRequestBody):
+    email: str = request.email
+    # password: str = request.password
+    # try:
+    #    user = pb.auth().sign_in_with_email_and_password(email, password)
+    #    jwt = user['idToken']
+    #    return JSONResponse(content={'token': jwt}, status_code=200)
+    # except Exception as e:
+    #    return HTTPException(detail={'message': str(e)}, status_code=400)
+
+    try:
+        user: Dict[str, Any] = supabase.auth.sign_in(email=email)
+        return JSONResponse(content={'message': f'Sended email to a user {user}'}, status_code=200)    
+    except Exception as e:
+        return HTTPException(detail={'message': str(e)}, status_code=400)
+
+@app.post("/ping")
+async def validate(request: Request):
+   headers = request.headers
+   jwt = headers.get('authorization')
+   print(f"jwt:{jwt}")
+   user = auth.verify_id_token(jwt)
+   return user["uid"]
+
+@app.post("/login", include_in_schema=False)
+async def login(request: SignUpRequestBody):
+   req_json = await request.json()
+   email = request['email']
+   password = request['password']
+   try:
+       user = pb.auth().sign_in_with_email_and_password(email, password)
+       jwt = user['idToken']
+       return JSONResponse(content={'token': jwt}, status_code=200)
+   except:
+       return HTTPException(detail={'message': 'There was an error logging in'}, status_code=400)
+
 
 @app.get("/")
 async def read_root():
     return "Please go to /docs to read the documentation"
 
 @app.post("/api/v1/workflows", response_model = WorkflowOut_Pydantic)
-async def create_workflow(workflow: WorkflowIn_Pydantic):
+async def create_workflow(workflow: WorkflowIn_Pydantic, token: str = Depends(check_auth)):
     """
     Create a new Workflow
     """
+    supabase.
     workflow_obj = await Workflows.create(**workflow.dict(exclude_unset=True))
     return await WorkflowOut_Pydantic.from_tortoise_orm(workflow_obj)
 
 @app.get("/api/v1/workflows", response_model=List[WorkflowOut_Pydantic])
-async def list_workflows():
+async def list_workflows(token: str = Depends(oauth2_scheme)):
     """
     List all workflows available
     """
     return await WorkflowOut_Pydantic.from_queryset(Workflows.all())
 
 @app.put("/api/v1/workflows/{workflow_id}/mount/datasets/{dataset_id}", response_model = DualResourceActionResponse)
-async def mount_dataset_to_workflow(workflow_id: int, dataset_id: int):
+async def mount_dataset_to_workflow(workflow_id: int, dataset_id: int, token: str = Depends(oauth2_scheme)):
     """
     Add a dataset to a workflow
     """
@@ -89,7 +165,7 @@ async def mount_dataset_to_workflow(workflow_id: int, dataset_id: int):
         ) 
 
 @app.delete("/api/v1/workflows/{workflow_id}", response_model=SingleResourceActionResponse)
-async def delete_workflow(workflow_id: int):
+async def delete_workflow(workflow_id: int, token: str = Depends(oauth2_scheme)):
     """
     Delete a workflow
     """
@@ -101,7 +177,7 @@ async def delete_workflow(workflow_id: int):
     )
 
 @app.get("/api/v1/workflows/{workflow_id}/datasets", response_model=List[DatasetOut_Pydantic])
-async def get_datasets_by_workflow(workflow_id):
+async def get_datasets_by_workflow(workflow_id, token: str = Depends(oauth2_scheme)):
     """
     Get all datasets given a workflow
     """
@@ -109,7 +185,7 @@ async def get_datasets_by_workflow(workflow_id):
     return queryset
 
 @app.post("/api/v1/datasets/upload")
-async def upload_dataset(file: UploadFile, dataset_name: str = "Default dataset name"):
+async def upload_dataset(file: UploadFile, dataset_name: str = "Default dataset name", token: str = Depends(oauth2_scheme)):
     """
     Upload a dataset to a id-th workflow
     """
@@ -134,7 +210,7 @@ async def upload_dataset(file: UploadFile, dataset_name: str = "Default dataset 
     return {"filename": file.filename}
 
 @app.post("/api/v1/datasets/create", response_model=DatasetOut_Pydantic)
-async def create_dataset(request_body: CreateDatasetBody, dataset_name: str = "Default dataset name"):
+async def create_dataset(request_body: CreateDatasetBody, dataset_name: str = "Default dataset name", token: str = Depends(oauth2_scheme)):
     """
     Create a dataset either by: facebook_post_urls or fanpage_id
 
@@ -165,14 +241,14 @@ async def create_dataset(request_body: CreateDatasetBody, dataset_name: str = "D
 
 
 @app.get("/api/v1/datasets", response_model=List[DatasetOut_Pydantic])
-async def list_datasets():
+async def list_datasets(token: str = Depends(oauth2_scheme)):
     """
     List all datasets
     """
     return await DatasetOut_Pydantic.from_queryset(Datasets.all())
 
 @app.delete("/api/v1/datasets", response_model=SingleResourceActionResponse)
-async def delete_dataset(dataset_id):
+async def delete_dataset(dataset_id, token: str = Depends(oauth2_scheme)):
     await Datasets.filter(id=dataset_id).delete()
     return SingleResourceActionResponse(
         resource_name = "dataset",
@@ -181,7 +257,7 @@ async def delete_dataset(dataset_id):
     )
 
 @app.get("/api/v1/datasets/{dataset_id}/datapoints", response_model=List[DatapointOut_Pydantic])
-async def list_datapoints_from_dataset(dataset_id):
+async def list_datapoints_from_dataset(dataset_id, token: str = Depends(oauth2_scheme)):
     """
     List all datapoints from a dataset
     """

@@ -5,12 +5,17 @@ class Users(models.Model):
     id = fields.IntField(pk=True)
     full_name = fields.CharField(max_length=50, null=True)
     username = fields.CharField(max_length=20, unique=True)
-    password = fields.CharField(max_length=128, null=True)
+    email = fields.CharField(max_length=128, null=True)
+    hashed_password = fields.CharField(max_length=128, null=True)
+    is_activated = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
 
     def __str__(self):
         return self.username
+
+class UserRegisterIn(Users):
+    password = fields.CharField(max_length=128, null=True, generated=True)
 
 class Workflows(models.Model):
     id = fields.IntField(pk=True)
@@ -44,8 +49,9 @@ class Datapoints(models.Model):
         return self.content
 
 User_Pydantic = pydantic_model_creator(Users, name="User")
-UserIn_Pydantic = pydantic_model_creator(Users, name="UserIn", exclude_readonly=True)
-UserOut_Pydantic = pydantic_model_creator(Users, name="UserOut", exclude=("password",))
+UserIn_Pydantic = pydantic_model_creator(Users, name="UserIn", exclude=("hashed_password", "is_activated"))
+UserOut_Pydantic = pydantic_model_creator(Users, name="UserOut", exclude=("hashed_password",))
+UserRegisterIn_Pydantic = pydantic_model_creator(UserRegisterIn, exclude=("hashed_password", "is_activated"), exclude_readonly=True)
 
 Workflow_Pydantic = pydantic_model_creator(Workflows, name="Workflow")
 WorkflowIn_Pydantic = pydantic_model_creator(Workflows, name="WorkflowIn", exclude_readonly=True)
