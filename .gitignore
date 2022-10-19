@@ -7,6 +7,10 @@ postgres_data/
 # C extensions
 *.so
 
+# Key extension
+*.key
+*.pub
+
 # Sqlite extensions
 *.sqlite
 *.sqlite-shm

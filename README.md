@@ -8,8 +8,7 @@
 # I. Installation 
 
 1. Install [Docker](https://www.docker.com/get-started/) and have it opened
-2. Run:  `docker build . -t taghub`
-3. Run: `docker run -p 4000:4000 --env PORT:4000 -t taghub:latest`
+2. Run `docker-compose up --build -d`
 
 # II. API Documentation:
 Documentation can be accessed via `localhost:4000` (Also depends on which port you used in [I])
@@ -17,7 +16,6 @@ Documentation can be accessed via `localhost:4000` (Also depends on which port y
 # III. Development
 
 1. Follow (I) 1+2 for the environment setup
-3. Run: `docker run -d -p 4000:4000 --env PORT=4000 -v ${PWD}/src:/code taghub:latest`
 2. Change the code, save and see these services react to your changes
 3. Whenever you add a new package, please run `docker-compose up -d --build` again
 

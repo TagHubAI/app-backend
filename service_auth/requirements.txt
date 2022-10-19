@@ -1,0 +1,4 @@
+fastapi<1
+easy-auth[server]<2
+aiosqlite
+

@@ -1,0 +1,55 @@
+version: '3.7'
+
+services:
+  app: 
+    build: service_app/
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://db_username:db_password@db:5432/db_dev
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - FB_TYPE=${FB_TYPE}
+      - FB_PROJECT_ID=${FB_PROJECT_ID}
+      - FB_PRIVATE_KEY_ID=${FB_PRIVATE_KEY_ID}      
+      - FB_PRIVATE_KEY=${FB_PRIVATE_KEY} 
+      - FB_CLIENT_EMAIL=${FB_CLIENT_EMAIL}
+      - FB_CLIENT_ID=${FB_CLIENT_ID}
+      - FB_AUTH_URI=${FB_AUTH_URI}
+      - FB_TOKEN_URI=${FB_TOKEN_URI}
+      - FB_AUTH_PROVIDER_X509_CERT_URL=${FB_AUTH_PROVIDER_X509_CERT_URL}
+      - FB_CLIENT_X509_CERT_URL=${FB_CLIENT_X509_CERT_URL}
+      - FB_ADMIN_CONFIGS=${FB_ADMIN_CONFIGS}
+      - FB_PYREBASE_CONFIGS=${FB_PYREBASE_CONFIGS}
+      - AUTH_SECRET=${AUTH_SECRET}
+    command: uvicorn app.api:app --reload --host 0.0.0.0 --port 4000
+    volumes:
+      - ./service_app/src:/app
+    ports:
+      - 4000:4000
+  auth: 
+    build: service_auth/
+    environment:
+      - AUTH_SECRET=${AUTH_SECRET}
+    command: uvicorn app:server --reload --host 0.0.0.0 --port 8330
+    volumes:
+      - ./service_auth:/app
+    ports:
+      - 8330:8330
+  db:
+    image: postgres:14-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=db_username
+      - POSTGRES_PASSWORD=db_password
+      - POSTGRES_DB=db_dev
+
+# Persistent data 
+volumes:
+  postgres_data:
+    driver: local
+
+

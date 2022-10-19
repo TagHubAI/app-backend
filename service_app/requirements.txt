@@ -1,0 +1,16 @@
+anyio==3.6.1
+asgiref==3.5.2
+certifi==2022.5.18.1
+fastapi==0.78.0
+uvicorn==0.17.6
+aerich==0.6.3
+asyncpg==0.26.0
+tortoise-orm==0.19.1
+supabase<1
+python-dotenv<1 
+python-jose[cryptography]<4
+passlib[bcrypt]<2
+python-multipart
+facebook-scraper
+firebase-admin<7
+pyrebase4
