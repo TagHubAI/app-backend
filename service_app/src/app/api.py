@@ -21,7 +21,7 @@ from .db.models import (
     DatapointOut_Pydantic,
     )
 
-from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse, CreateDatasetBody, SignUpRequestBody, SignInRequestBody
+from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse, CreateDatasetBody, SignUpRequestBody, SignInRequestBody, LineByLineTextInput, VerifyTokenInput
 from .auth.security import  get_password_hash
 from tortoise.contrib.fastapi import register_tortoise
 from dotenv import load_dotenv
@@ -34,7 +34,7 @@ from firebase_admin import credentials, auth
 import pyrebase
 import json
 
-from typing import List
+from typing import List, Dict
 
 load_dotenv()  # take environment variables from .env.
 
@@ -42,7 +42,8 @@ app = FastAPI()
 
 # Allowed origins
 origins = [
-    "http://localhost:3000",
+    "http://127.0.0.1:3333",
+    "http://localhost:3333",
 ]
 
 app.add_middleware(
@@ -89,6 +90,31 @@ async def signup(req: SignUpRequestBody):
     except Exception as e:
         return HTTPException(detail={'message': str(e)}, status_code=400)
 
+@app.post("/api/v1/user")
+async def get_user_base_on_token(req: VerifyTokenInput):
+    token: str = req.token
+    user =  supabase.auth.api.get_user(jwt=token)
+    return {"aud": user.aud, "email": user.email }  
+    
+    # Only required email for signup at this time
+    # password: str = 
+    #
+    # if email is None or password is None:
+    #    return HTTPException(detail={'message': 'Error! Missing Email or Password'}, status_code=400)
+    # try:
+    #    user = auth.create_user(
+    #        email=email,
+    #        password=password
+    #    )
+    #    return JSONResponse(content={'message': f'Successfully created user {user.uid}'}, status_code=200)    
+    # except Exception as e:
+    #     return HTTPException(detail={'message': str(e)}, status_code=400)
+    
+    try:
+        user: Dict[str, Any] = supabase.auth.sign_up(email=email)
+        return JSONResponse(content={'message': f'Successfully created user {user.uid}'}, status_code=200)    
+    except Exception as e:
+        return HTTPException(detail={'message': str(e)}, status_code=400)
 
 @app.post("/signin")
 async def signin(request: SignInRequestBody):
@@ -107,13 +133,10 @@ async def signin(request: SignInRequestBody):
     except Exception as e:
         return HTTPException(detail={'message': str(e)}, status_code=400)
 
-@app.post("/ping")
-async def validate(request: Request):
-   headers = request.headers
-   jwt = headers.get('authorization')
-   print(f"jwt:{jwt}")
-   user = auth.verify_id_token(jwt)
-   return user["uid"]
+@app.get("/api/v1/ping")
+async def ping(token: str = Depends(oauth2_scheme)):
+    return {"result": "Cool"}
+
 
 @app.post("/login", include_in_schema=False)
 async def login(request: SignUpRequestBody):
@@ -133,11 +156,10 @@ async def read_root():
     return "Please go to /docs to read the documentation"
 
 @app.post("/api/v1/workflows", response_model = WorkflowOut_Pydantic)
-async def create_workflow(workflow: WorkflowIn_Pydantic, token: str = Depends(check_auth)):
+async def create_workflow(workflow: WorkflowIn_Pydantic):
     """
     Create a new Workflow
     """
-    supabase.
     workflow_obj = await Workflows.create(**workflow.dict(exclude_unset=True))
     return await WorkflowOut_Pydantic.from_tortoise_orm(workflow_obj)
 
@@ -265,6 +287,19 @@ async def list_datapoints_from_dataset(dataset_id, token: str = Depends(oauth2_s
     return queryset
 
 
+@app.post("/api/v1/apps/clustering/process")
+async def run_process_clustering(text_data: LineByLineTextInput):
+    """
+    Process a request data
+    """
+    print(text_data)
+    return
+    post_content = jsonable_encoder(post_content)
+    text_list: List[str] = post_content["textarea"].split("\r\n")
+    return 
+
+
+    
     # return await Datapoints.all().prefetch_related(Prefetch(dataset, queryset))
 # 
 #### POSTPONED UNTIL HAVE USERS MANAGEMENT

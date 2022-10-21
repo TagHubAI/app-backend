@@ -25,3 +25,9 @@ class SignInRequestBody(BaseModel):
     email: str
     password: str
 
+class LineByLineTextInput(BaseModel):
+    text_data: List[str]
+
+class VerifyTokenInput(BaseModel):
+    token: str
+
