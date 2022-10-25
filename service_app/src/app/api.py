@@ -35,6 +35,9 @@ import pyrebase
 import json
 
 from typing import List, Dict
+from bertopic import BERTopic
+import texthero as hero
+import pandas as pd
 
 load_dotenv()  # take environment variables from .env.
 
@@ -287,17 +290,42 @@ async def list_datapoints_from_dataset(dataset_id, token: str = Depends(oauth2_s
     return queryset
 
 
-@app.post("/api/v1/apps/clustering/process")
-async def run_process_clustering(text_data: LineByLineTextInput):
+@app.post("/api/v1/apps/topic_model/process")
+async def run_process_clustering(payload: LineByLineTextInput):
     """
     Process a request data
     """
-    print(text_data)
-    return
-    post_content = jsonable_encoder(post_content)
-    text_list: List[str] = post_content["textarea"].split("\r\n")
-    return 
+    topic_model = BERTopic(embedding_model="all-MiniLM-L6-v2")
+    docs = payload.text_data.split("\n")
 
+    # Preprocess
+    clean_docs = pd.Series(docs).pipe(hero.clean)
+
+    topics, probs = topic_model.fit_transform(clean_docs)
+
+    num_topics = max(topics)
+    sentences_by_topics = {topic_id: {"data":[],"topic": []} for topic_id in range(num_topics+1)}
+
+    for doc, topic_id in zip(docs, topics):
+        # topic "-1" are stopwords
+        if topic_id == -1: continue
+        sentences_by_topics[topic_id]["data"].append(doc)
+
+    for topic_id in range(num_topics+1):
+        # Get keywords
+        #keywords = topic_model.get_topic_info(topic_id).Name.values[0].split("_")[1:]
+        topic = topic_model.get_topic(topic_id)
+        
+        # convert to percentage
+        topic = [(t[0].capitalize(), round(t[1]*100,2)) for t in topic]
+        sentences_by_topics[topic_id]["topic"] = topic
+        sentences_by_topics[topic_id]["count"] = len(sentences_by_topics[topic_id]["data"]) 
+
+
+    # Change to list
+    sentences_by_topics = [topic_items for (_, topic_items) in sentences_by_topics.items()]
+
+    return sentences_by_topics 
 
     
     # return await Datapoints.all().prefetch_related(Prefetch(dataset, queryset))

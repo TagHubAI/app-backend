@@ -26,7 +26,11 @@ class SignInRequestBody(BaseModel):
     password: str
 
 class LineByLineTextInput(BaseModel):
-    text_data: List[str]
+    """
+    This is first line\nThis is second line
+
+    """
+    text_data: str
 
 class VerifyTokenInput(BaseModel):
     token: str
