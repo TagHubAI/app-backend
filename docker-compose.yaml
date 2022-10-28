@@ -28,15 +28,15 @@ services:
       - ./service_app/src:/app
     ports:
       - 4000:4000
-  auth: 
-    build: service_auth/
-    environment:
-      - AUTH_SECRET=${AUTH_SECRET}
-    command: uvicorn app:server --reload --host 0.0.0.0 --port 8330
-    volumes:
-      - ./service_auth:/app
-    ports:
-      - 8330:8330
+  # auth: 
+  #   build: service_auth/
+  #   environment:
+  #     - AUTH_SECRET=${AUTH_SECRET}
+  #   command: uvicorn app:server --reload --host 0.0.0.0 --port 8330
+  #   volumes:
+  #     - ./service_auth:/app
+  #   ports:
+  #     - 8330:8330
   db:
     image: postgres:14-alpine
     volumes:

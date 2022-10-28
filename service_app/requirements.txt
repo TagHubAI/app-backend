@@ -15,5 +15,5 @@ facebook-scraper
 firebase-admin<7
 pyrebase4
 joblib<=1.1.0
-bertopic
+# bertopic
 textherox==1.2.0

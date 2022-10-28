@@ -35,7 +35,7 @@ import pyrebase
 import json
 
 from typing import List, Dict
-from bertopic import BERTopic
+# from bertopic import BERTopic
 import texthero as hero
 import pandas as pd
 
