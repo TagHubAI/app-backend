@@ -25,3 +25,13 @@ class SignInRequestBody(BaseModel):
     email: str
     password: str
 
+class LineByLineTextInput(BaseModel):
+    """
+    This is first line\nThis is second line
+
+    """
+    text_data: str
+
+class VerifyTokenInput(BaseModel):
+    token: str
+

@@ -11,6 +11,8 @@ postgres_data/
 *.key
 *.pub
 
+*/**/.rpc_secret
+
 # Sqlite extensions
 *.sqlite
 *.sqlite-shm

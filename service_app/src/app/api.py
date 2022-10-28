@@ -21,7 +21,7 @@ from .db.models import (
     DatapointOut_Pydantic,
     )
 
-from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse, CreateDatasetBody, SignUpRequestBody, SignInRequestBody
+from .db.schemas import DualResourceActionResponse, SingleResourceActionResponse, CreateDatasetBody, SignUpRequestBody, SignInRequestBody, LineByLineTextInput, VerifyTokenInput
 from .auth.security import  get_password_hash
 from tortoise.contrib.fastapi import register_tortoise
 from dotenv import load_dotenv
@@ -34,7 +34,10 @@ from firebase_admin import credentials, auth
 import pyrebase
 import json
 
-from typing import List
+from typing import List, Dict
+# from bertopic import BERTopic
+import texthero as hero
+import pandas as pd
 
 load_dotenv()  # take environment variables from .env.
 
@@ -42,7 +45,8 @@ app = FastAPI()
 
 # Allowed origins
 origins = [
-    "http://localhost:3000",
+    "http://127.0.0.1:3333",
+    "http://localhost:3333",
 ]
 
 app.add_middleware(
@@ -89,6 +93,31 @@ async def signup(req: SignUpRequestBody):
     except Exception as e:
         return HTTPException(detail={'message': str(e)}, status_code=400)
 
+@app.post("/api/v1/user")
+async def get_user_base_on_token(req: VerifyTokenInput):
+    token: str = req.token
+    user =  supabase.auth.api.get_user(jwt=token)
+    return {"aud": user.aud, "email": user.email }  
+    
+    # Only required email for signup at this time
+    # password: str = 
+    #
+    # if email is None or password is None:
+    #    return HTTPException(detail={'message': 'Error! Missing Email or Password'}, status_code=400)
+    # try:
+    #    user = auth.create_user(
+    #        email=email,
+    #        password=password
+    #    )
+    #    return JSONResponse(content={'message': f'Successfully created user {user.uid}'}, status_code=200)    
+    # except Exception as e:
+    #     return HTTPException(detail={'message': str(e)}, status_code=400)
+    
+    try:
+        user: Dict[str, Any] = supabase.auth.sign_up(email=email)
+        return JSONResponse(content={'message': f'Successfully created user {user.uid}'}, status_code=200)    
+    except Exception as e:
+        return HTTPException(detail={'message': str(e)}, status_code=400)
 
 @app.post("/signin")
 async def signin(request: SignInRequestBody):
@@ -107,13 +136,10 @@ async def signin(request: SignInRequestBody):
     except Exception as e:
         return HTTPException(detail={'message': str(e)}, status_code=400)
 
-@app.post("/ping")
-async def validate(request: Request):
-   headers = request.headers
-   jwt = headers.get('authorization')
-   print(f"jwt:{jwt}")
-   user = auth.verify_id_token(jwt)
-   return user["uid"]
+@app.get("/api/v1/ping")
+async def ping(token: str = Depends(oauth2_scheme)):
+    return {"result": "Cool"}
+
 
 @app.post("/login", include_in_schema=False)
 async def login(request: SignUpRequestBody):
@@ -133,11 +159,10 @@ async def read_root():
     return "Please go to /docs to read the documentation"
 
 @app.post("/api/v1/workflows", response_model = WorkflowOut_Pydantic)
-async def create_workflow(workflow: WorkflowIn_Pydantic, token: str = Depends(check_auth)):
+async def create_workflow(workflow: WorkflowIn_Pydantic):
     """
     Create a new Workflow
     """
-    supabase.
     workflow_obj = await Workflows.create(**workflow.dict(exclude_unset=True))
     return await WorkflowOut_Pydantic.from_tortoise_orm(workflow_obj)
 
@@ -265,6 +290,44 @@ async def list_datapoints_from_dataset(dataset_id, token: str = Depends(oauth2_s
     return queryset
 
 
+@app.post("/api/v1/apps/topic_model/process")
+async def run_process_clustering(payload: LineByLineTextInput):
+    """
+    Process a request data
+    """
+    topic_model = BERTopic(embedding_model="all-MiniLM-L6-v2")
+    docs = payload.text_data.split("\n")
+
+    # Preprocess
+    clean_docs = pd.Series(docs).pipe(hero.clean)
+
+    topics, probs = topic_model.fit_transform(clean_docs)
+
+    num_topics = max(topics)
+    sentences_by_topics = {topic_id: {"data":[],"topic": []} for topic_id in range(num_topics+1)}
+
+    for doc, topic_id in zip(docs, topics):
+        # topic "-1" are stopwords
+        if topic_id == -1: continue
+        sentences_by_topics[topic_id]["data"].append(doc)
+
+    for topic_id in range(num_topics+1):
+        # Get keywords
+        #keywords = topic_model.get_topic_info(topic_id).Name.values[0].split("_")[1:]
+        topic = topic_model.get_topic(topic_id)
+        
+        # convert to percentage
+        topic = [(t[0].capitalize(), round(t[1]*100,2)) for t in topic]
+        sentences_by_topics[topic_id]["topic"] = topic
+        sentences_by_topics[topic_id]["count"] = len(sentences_by_topics[topic_id]["data"]) 
+
+
+    # Change to list
+    sentences_by_topics = [topic_items for (_, topic_items) in sentences_by_topics.items()]
+
+    return sentences_by_topics 
+
+    
     # return await Datapoints.all().prefetch_related(Prefetch(dataset, queryset))
 # 
 #### POSTPONED UNTIL HAVE USERS MANAGEMENT
