@@ -68,6 +68,11 @@ supabase: Client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get(
 
 # Setup supabase authentication
 
+def api_authen(token):
+    user = supabase.auth.api.get_user(jwt=token)
+    if user.aud and user.aud == "authenticated":
+        return True
+    return False
 
 # signup endpoint
 @app.post("/signup")
@@ -291,41 +296,44 @@ async def list_datapoints_from_dataset(dataset_id, token: str = Depends(oauth2_s
 
 
 @app.post("/api/v1/apps/topic_model/process")
-async def run_process_clustering(payload: LineByLineTextInput):
+async def run_process_clustering(req: VerifyTokenInput, payload: LineByLineTextInput):
     """
     Process a request data
     """
-    topic_model = BERTopic(embedding_model="all-MiniLM-L6-v2")
-    docs = payload.text_data.split("\n")
+    authenticated = api_authen(req.token)
+    if authenticated:
+        topic_model = BERTopic(embedding_model="all-MiniLM-L6-v2")
+        docs = payload.text_data.split("\n")
 
-    # Preprocess
-    clean_docs = pd.Series(docs).pipe(hero.clean)
+        # Preprocess
+        clean_docs = pd.Series(docs).pipe(hero.clean)
 
-    topics, probs = topic_model.fit_transform(clean_docs)
+        topics, probs = topic_model.fit_transform(clean_docs)
 
-    num_topics = max(topics)
-    sentences_by_topics = {topic_id: {"data":[],"topic": []} for topic_id in range(num_topics+1)}
+        num_topics = max(topics)
+        sentences_by_topics = {topic_id: {"data":[],"topic": []} for topic_id in range(num_topics+1)}
 
-    for doc, topic_id in zip(docs, topics):
-        # topic "-1" are stopwords
-        if topic_id == -1: continue
-        sentences_by_topics[topic_id]["data"].append(doc)
+        for doc, topic_id in zip(docs, topics):
+            # topic "-1" are stopwords
+            if topic_id == -1: continue
+            sentences_by_topics[topic_id]["data"].append(doc)
 
-    for topic_id in range(num_topics+1):
-        # Get keywords
-        #keywords = topic_model.get_topic_info(topic_id).Name.values[0].split("_")[1:]
-        topic = topic_model.get_topic(topic_id)
-        
-        # convert to percentage
-        topic = [(t[0].capitalize(), round(t[1]*100,2)) for t in topic]
-        sentences_by_topics[topic_id]["topic"] = topic
-        sentences_by_topics[topic_id]["count"] = len(sentences_by_topics[topic_id]["data"]) 
+        for topic_id in range(num_topics+1):
+            # Get keywords
+            #keywords = topic_model.get_topic_info(topic_id).Name.values[0].split("_")[1:]
+            topic = topic_model.get_topic(topic_id)
+            
+            # convert to percentage
+            topic = [(t[0].capitalize(), round(t[1]*100,2)) for t in topic]
+            sentences_by_topics[topic_id]["topic"] = topic
+            sentences_by_topics[topic_id]["count"] = len(sentences_by_topics[topic_id]["data"]) 
 
 
-    # Change to list
-    sentences_by_topics = [topic_items for (_, topic_items) in sentences_by_topics.items()]
+        # Change to list
+        sentences_by_topics = [topic_items for (_, topic_items) in sentences_by_topics.items()]
 
-    return sentences_by_topics 
+        return sentences_by_topics 
+    return []
 
     
     # return await Datapoints.all().prefetch_related(Prefetch(dataset, queryset))
