@@ -10,17 +10,17 @@ commands:
   run_build_test_backend:
     steps:
       - checkout
-      - run:
-          name: "Install module package"
-          command: |
-            pip install -r requirements.txt
-      - run:
-          name: "Install test package"
-          command: |
-            pip install -r test_requirements.txt
-      - run:
-          name: "Test backend with coverage"
-          command: |
+      # - run:
+      #     name: "Install module package"
+      #     command: |
+      #       pip install -r requirements.txt
+      # - run:
+      #     name: "Install test package"
+      #     command: |
+      #       pip install -r test_requirements.txt
+      # - run:
+      #     name: "Test backend with coverage"
+      #     command: |
             # pytest tests
       
 jobs:
