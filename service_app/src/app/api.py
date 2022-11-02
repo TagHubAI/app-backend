@@ -35,7 +35,7 @@ import pyrebase
 import json
 
 from typing import List, Dict
-# from bertopic import BERTopic
+from bertopic import BERTopic
 import texthero as hero
 import pandas as pd
 
@@ -297,6 +297,9 @@ async def run_process_clustering(payload: LineByLineTextInput):
     """
     topic_model = BERTopic(embedding_model="all-MiniLM-L6-v2")
     docs = payload.text_data.split("\n")
+
+    # Remove empty line
+    docs = list(filter(lambda x: len(x), docs))
 
     # Preprocess
     clean_docs = pd.Series(docs).pipe(hero.clean)

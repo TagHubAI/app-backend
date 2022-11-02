@@ -23,11 +23,24 @@ services:
       - FB_ADMIN_CONFIGS=${FB_ADMIN_CONFIGS}
       - FB_PYREBASE_CONFIGS=${FB_PYREBASE_CONFIGS}
       - AUTH_SECRET=${AUTH_SECRET}
-    command: uvicorn app.api:app --reload --host 0.0.0.0 --port 4000
+    command: uvicorn src.app.api:app --reload --host 0.0.0.0 --port 4000
     volumes:
-      - ./service_app/src:/app
+      - ./service_app:/app
     ports:
       - 4000:4000
+  frontend: 
+    # platform: linux/x86_64
+    build: service_frontend/
+    environment:
+      - VITE_API_ENDPOINT=${VITE_API_ENDPOINT}
+      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+
+    command: pnpm dev 
+    # volumes:
+    #   - ./service_frontend:/usr/src/app
+    ports:
+      - 3333:3333
   # auth: 
   #   build: service_auth/
   #   environment:
